@@ -7,6 +7,11 @@ This example shows how you might use Apigee to
 generate JWT signed with RSA keys, and also publish a .jwks endpoint containing
 public keys, which allows external clients to verify the JWT.
 
+## Disclaimer
+
+This example is not an official Google product, nor is it part of an
+official Google product.
+
 ## Background
 
 First, let's address a common misunderstanding. Some people think that verifying JWTs requires a JWKS endpoint.
@@ -175,6 +180,20 @@ All of the supporting tools are written in nodejs.
 * [importAndDeploy.js](./tools/importAndDeploy.js) - imports the example proxy bundle
   to  Apigee, and deploys it.
 
+## Support
+
+This example is not a supported part of
+Apigee.  If you need assistance, you can try inquiring on [The
+Apigee Community Site](https://community.apigee.com).  There is no
+service-level guarantee for responses to inquiries regarding this
+callout.
+
+## License
+
+The material in this repo is copyright (c) 2019
+Google LLC and is licensed under the [Apache 2.0
+License](LICENSE). This includes the JavaScript code as well as the API
+Proxy configuration.
 
 ## Bugs
 
