@@ -1,0 +1,9 @@
+<KeyValueMapOperations name='KVM-Get-JWKS' mapIdentifier='non-secrets'>
+  <Scope>environment</Scope>
+  <ExpiryTimeInSecs>180</ExpiryTimeInSecs>
+  <Get assignTo='jwks'>
+    <Key>
+      <Parameter>jwks</Parameter>
+    </Key>
+  </Get>
+</KeyValueMapOperations>

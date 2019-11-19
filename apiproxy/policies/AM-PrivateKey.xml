@@ -1,0 +1,7 @@
+<AssignMessage name='AM-PrivateKey'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>diags</Name>
+    <Ref>private.privatekey</Ref>
+  </AssignVariable>
+</AssignMessage>

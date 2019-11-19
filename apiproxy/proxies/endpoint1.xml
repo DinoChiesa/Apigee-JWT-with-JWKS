@@ -1,0 +1,95 @@
+<ProxyEndpoint name="endpoint1">
+  <Description>Proxy Endpoint 1</Description>
+  <HTTPProxyConnection>
+    <BasePath>/jwt-with-jwks</BasePath>
+    <Properties/>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules/>
+
+  <PreFlow name="PreFlow">
+    <Request>
+    </Request>
+    <Response>
+      <Step>
+        <Name>AM-CleanResponseHeaders</Name>
+      </Step>
+    </Response>
+  </PreFlow>
+
+  <Flows>
+
+    <Flow name="flow1">
+      <Description>dispense tokens for OAuth2.0, for Client credentials</Description>
+      <!--
+          An example request is like this:
+
+          curl -i -X POST -H 'content-type application/x-www-form-urlencoded' \
+            -u ${client_id}:${client_secret} \
+            "https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/oauth2-cc/token" \
+            -d 'grant_type=client_credentials'
+
+          The resulting token will have an expiry, and a set of metadata.
+
+      -->
+      <Request>
+        <Step>
+          <Name>RF-InvalidGrantType</Name>
+          <Condition>request.formparam.grant_type != "client_credentials"</Condition>
+        </Step>
+      </Request>
+
+      <Response>
+        <Step>
+          <!-- this policy sets variables -->
+          <Name>OAuthV2-GenerateAccessToken-CC</Name>
+        </Step>
+
+        <Step><Name>KVM-Get-CurrentKid</Name></Step>
+        <Step><Name>KVM-Get-PrivateKey</Name></Step>
+
+        <!-- for diagnostics purposes only -->
+        <Step><Name>AM-PrivateKey</Name></Step>
+
+        <Step><Name>AM-OtherVars</Name></Step>
+
+        <Step><Name>GenerateJWT-1</Name></Step>
+
+        <!-- for diagnostics purposes only -->
+        <Step><Name>DecodeJWT-1</Name></Step>
+
+        <Step>
+          <Name>AM-JWT-Response</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/oauth2-cc/token") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name="jwks">
+      <Request>
+        <Step><Name>KVM-Get-JWKS</Name></Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-JWKS-Response</Name>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/jwks.json") and (request.verb = "GET")</Condition>
+    </Flow>
+
+    <Flow name="unknown request">
+      <Request>
+        <Step>
+          <Name>RF-UnknownRequest</Name>
+        </Step>
+      </Request>
+      <Response>
+      </Response>
+    </Flow>
+
+  </Flows>
+
+  <RouteRule name="NoRouteRule"/>
+
+</ProxyEndpoint>

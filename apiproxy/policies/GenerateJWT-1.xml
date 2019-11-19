@@ -1,0 +1,15 @@
+<GenerateJWT name='GenerateJWT-1'>
+  <Algorithm>RS256</Algorithm>
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <PrivateKey>
+    <Value ref="private.private_key"/>
+    <Id ref='currentKid'/>
+  </PrivateKey>
+  <Issuer ref='jwt_issuer'/>
+  <ExpiresIn>30m</ExpiresIn>
+  <AdditionalClaims>
+    <Claim name="access_token" ref='apigee.access_token'/>
+    <Claim name="client_id" ref='apigee.client_id'/>
+  </AdditionalClaims>
+  <OutputVariable>generated_jwt</OutputVariable>
+</GenerateJWT>

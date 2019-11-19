@@ -1,0 +1,7 @@
+<AssignMessage name='AM-OtherVars'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>jwt_issuer</Name>
+    <Template>{client.scheme}://{request.header.host}{proxy.basepath}</Template>
+  </AssignVariable>
+</AssignMessage>
