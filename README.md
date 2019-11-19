@@ -83,8 +83,10 @@ Prerequisites:
 * npm v6+
 * the curl utility
 * an apigee org + environment
+* A terminal shell 
 
 1. Prepare:
+   Open the terminal shell. cd into the tools directory.
    ```
    cd tools
    npm install
@@ -103,7 +105,7 @@ Prerequisites:
    node ./importAndDeploy.js -v -u myapigeeid@example.com -o $ORG -e $ENV -d ../
    ```
 
-3. get a client id and secret from Apigee. Then set them into environment:
+3. get a client id and secret from Apigee. Then set them into your terminal environment:
    ```
    client_id=baaadbeefeiodxkjkdjdlk
    client_secret=foobarlkls
@@ -111,7 +113,7 @@ Prerequisites:
 
 4. Invoke the example proxy to Get a token:
    ```
-    curl -i -X POST -H 'content-type application/x-www-form-urlencoded' \
+   curl -i -X POST -H content-type:application/x-www-form-urlencoded \
       -u ${client_id}:${client_secret} \
       "https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/oauth2-cc/token" \
       -d 'grant_type=client_credentials'
@@ -132,10 +134,10 @@ Prerequisites:
 
 5. Verify that token:
    ```
-   JWT=TOKEN_FROM_ABOVE
    JWKS_ENDPOINT=https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/jwks.json
+   JWT=TOKEN_FROM_ABOVE
 
-   node ./validateToken.js -t $JWT -e $JWKS_ENDPOINT
+   node ./validateToken.js -e $JWKS_ENDPOINT -t $JWT 
    ```
 
    You should see a happy message saying the token was verified.
@@ -147,9 +149,12 @@ Later, you can Generate and provision a new keypair.
 node ./provisionNewKeyPair.js -n -v -o $ORG -e $ENV
 ```
 
+This will update the KVM that stores the "currentKid" to point to the new public
+key and new private key.  It also updates the JWKS content in the KVM.
+
 Subsequent requests for a token (step 4) will use the new key pair.
 and verification (step 5) will continue to work as before, using the new key.
-Keep in mind the current key and JWKS is cached in the Apigee gateway,
+Keep in mind the data for the current key and JWKS is cached in the Apigee gateway,
 for 180s.
 
 
@@ -173,6 +178,10 @@ All of the supporting tools are written in nodejs.
 
 ## Bugs
 
-* the provisioning tool does not remove keys from the JWKS payload when they are rotated
-  out. As a result, the JWKS payload grows without bound when you re-run
-  provisionNewKeyPair.js .
+* The provisioning tool does not remove keys from the JWKS payload when they are
+  rotated out. As a result, the JWKS payload grows without bound when you re-run
+  provisionNewKeyPair.js.  This could be accomplished by storing a date in the
+  KVM that marks when each particular keypair was provisioned. The script could
+  compare that data with "now", and then reap old private and public keys, and
+  updating the JWKS appropriately, when the date is "old" (let's say, more than
+  1 or 2 months out of date).
