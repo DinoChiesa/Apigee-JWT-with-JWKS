@@ -28,15 +28,14 @@ const edgejs     = require('apigee-edge-js'),
       crypto     = require('crypto'),
       util       = require('util'),
       jose       = require('node-jose'),
-      jwkToPem   = require('jwk-to-pem'),
       Getopt     = require('node-getopt'),
-      version    = '20191119-0454',
+      version    = '20191125-1342',
       defaults   = { secretsmap : 'secrets', nonsecretsmap: 'non-secrets', keystrength: 2048},
       getopt     = new Getopt(common.commonOptions.concat([
         ['e' , 'env=ARG', 'the Edge environment for which to store the KVM data'],
         ['b' , 'keystrength=ARG', 'optional. strength in bits of the RSA keypair. Default: ' + defaults.keystrength],
-        ['S' , 'secretsmap=ARG', 'name of the KVM in Edge for private keys. Will be created (encrypted) if nec. Default: ' + defaults.secretsmap],
-        ['N' , 'nonsecretsmap=ARG', 'name of the KVM in Edge for public keys, keyids, JWKS. Will be created if nec. Default: ' + defaults.nonsecretsmap]
+        ['S' , 'secretsmap=ARG', 'name of the KVM in Apigee for private keys. Will be created (encrypted) if nec. Default: ' + defaults.secretsmap],
+        ['N' , 'nonsecretsmap=ARG', 'name of the KVM in Apigee for public keys, keyids, JWKS. Will be created if nec. Default: ' + defaults.nonsecretsmap]
       ])).bindHelp();
 
 // ========================================================
@@ -106,7 +105,7 @@ function loadKeysIntoMap(org) {
               let keystore = jose.JWK.createKeyStore();
               return keystore.add(publicKey, 'pem', {kid, use:'sig'})
                 .then( result => {
-                  existingJwks.keys.push(result.toJSON());
+                  existingJwks.push(result.toJSON());
                   return org.kvms.put({...options, value: JSON.stringify(existingJwks) });
                 });
             })
