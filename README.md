@@ -102,14 +102,12 @@ Prerequisites:
    ORG=myorg
    ENV=myenv
 
-   # provision the KVM
-   node ./provisionNewKeyPair.js -n -v -o $ORG -e $ENV
-
-   # Deploy the proxy
-   node ./importAndDeploy.js -v -u myapigeeid@example.com -o $ORG -e $ENV -d ../
+   # provision a new keypair, import and deploy the proxy, and provision a product and app
+   node ./provision.js -v -u myapigeeid@example.com -o $ORG -e $ENV -d ../
    ```
 
-3. get a client id and secret from Apigee. Then set them into your terminal environment:
+3. In the output of the above provisioning script, find the client id and secret 
+   for the newly-created  Apigee developer app. Copy paste them, to set it into your terminal environment:
    ```
    client_id=baaadbeefeiodxkjkdjdlk
    client_secret=foobarlkls

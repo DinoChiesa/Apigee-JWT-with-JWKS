@@ -4,4 +4,10 @@
     <Name>jwt_issuer</Name>
     <Template>{client.scheme}://{request.header.host}{proxy.basepath}</Template>
   </AssignVariable>
+  <AssignVariable>
+    <Name>jwks_endpoint</Name>
+    <Template>{client.scheme}://{request.header.host}{proxy.basepath}/jwks.json</Template>
+  </AssignVariable>
+
+
 </AssignMessage>

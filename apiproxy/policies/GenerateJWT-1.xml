@@ -11,5 +11,8 @@
     <Claim name="access_token" ref='apigee.access_token'/>
     <Claim name="client_id" ref='apigee.client_id'/>
   </AdditionalClaims>
+  <AdditionalHeaders>
+    <Claim name="jku" ref='jwks_endpoint'/>
+  </AdditionalHeaders>
   <OutputVariable>generated_jwt</OutputVariable>
 </GenerateJWT>

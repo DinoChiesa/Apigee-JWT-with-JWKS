@@ -24,13 +24,12 @@
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
       apigeeEdge = edgejs.edge,
-      //sprintf    = require('sprintf-js').sprintf,
       crypto     = require('crypto'),
       util       = require('util'),
       jose       = require('node-jose'),
       Getopt     = require('node-getopt'),
-      version    = '20191125-1342',
-      defaults   = { secretsmap : 'secrets', nonsecretsmap: 'non-secrets', keystrength: 2048},
+      version    = '20191217-1110',
+      defaults   = { secretsmap : 'secrets', nonsecretsmap: 'settings', keystrength: 2048},
       getopt     = new Getopt(common.commonOptions.concat([
         ['e' , 'env=ARG', 'the Edge environment for which to store the KVM data'],
         ['b' , 'keystrength=ARG', 'optional. strength in bits of the RSA keypair. Default: ' + defaults.keystrength],
@@ -97,15 +96,15 @@ function loadKeysIntoMap(org) {
           delete options.value;
           return org.kvms.get(options)
             .then( result => {
-              console.log('kvm result: ' + util.format(result));
+              //console.log('kvm result: ' + util.format(result));
               let existingJwks = result.entry.find( x => x.name == 'jwks');
-              console.log(existingJwks);
+              //console.log(existingJwks);
               existingJwks = (existingJwks) ? JSON.parse(existingJwks.value) : { keys : []};
 
               let keystore = jose.JWK.createKeyStore();
               return keystore.add(publicKey, 'pem', {kid, use:'sig'})
                 .then( result => {
-                  existingJwks.push(result.toJSON());
+                  existingJwks.keys.push(result.toJSON());
                   return org.kvms.put({...options, value: JSON.stringify(existingJwks) });
                 });
             })
@@ -151,28 +150,8 @@ common.verifyCommonRequiredParameters(opt.options, getopt);
 apigeeEdge.connect(common.optToOptions(opt))
   .then(org => {
     common.logWrite('connected');
-    return org.kvms.get({ env: opt.options.env })
-      .then( result => {
-        var missingMaps = [opt.options.secretsmap,
-                           opt.options.nonsecretsmap]
-          .filter(v => result.indexOf(v) == -1 );
-
-        var p = Promise.resolve({});
-        if (missingMaps && missingMaps.length > 0) {
-          common.logWrite('Need to create one or more maps');
-
-          const reducer = (promise, mapname) =>
-            promise .then( accumulator =>
-                           org.kvms.create({ env: opt.options.env, name: mapname, encrypted:(mapname == opt.options.secretsmap)})
-                           .then( _ => [ ...accumulator, mapname ] ));
-
-          p = p.then( _ => missingMaps
-                      .reduce(reducer, Promise.resolve([]))
-                      .then( arrayOfResults => common.logWrite('created: \n' + JSON.stringify(arrayOfResults)) ));
-        }
-
-        return p.then( _ => loadKeysIntoMap(org) )
-          .then( _ =>   common.logWrite('ok. the keys were loaded successfully.') );
-      });
+    return Promise.resolve({})
+      .then( _ => loadKeysIntoMap(org) )
+      .then( _ => common.logWrite('ok. the new keys were loaded successfully.') );
   })
   .catch( e => console.error('error: ' + util.format(e) ));
