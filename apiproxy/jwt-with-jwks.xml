@@ -2,7 +2,7 @@
   <ConfigurationVersion minorVersion="0" majorVersion="4"/>
   <CreatedAt>1489339923158</CreatedAt>
   <CreatedBy>dino</CreatedBy>
-  <Description/>
+  <Description>See https://github.com/DinoChiesa/Apigee-JWT-with-JWKS</Description>
   <DisplayName>jwt-with-jwks</DisplayName>
   <LastModifiedAt>1489340418969</LastModifiedAt>
   <LastModifiedBy>orgAdmin</LastModifiedBy>
