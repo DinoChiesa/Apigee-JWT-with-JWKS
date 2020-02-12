@@ -21,7 +21,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-February-12 11:33:42>
+// last saved: <2020-February-12 15:13:38>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -114,7 +114,7 @@ function loadKeysIntoMap(org) {
               let existingJwks = result.entry.find( x => x.name == 'jwks');
 
               //console.log('existingJwks: ' + JSON.stringify(existingJwks));
-              let keys = JSON.parse(existingJwks ? existingJwks.value : "[]");
+              let keys = existingJwks ? JSON.parse(existingJwks.value).keys : [];
               //console.log('keys: ' + JSON.stringify(keys));
               let keystore = jose.JWK.createKeyStore();
               return keystore.add(publicKey, 'pem', {kid, use:'sig'})

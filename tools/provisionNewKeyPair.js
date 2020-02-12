@@ -99,7 +99,7 @@ function loadKeysIntoMap(org) {
               //console.log('kvm result: ' + util.format(result));
               let existingJwks = result.entry.find( x => x.name == 'jwks');
               //console.log(existingJwks);
-              let keys = JSON.parse(existingJwks? existingJwks.value: "[]");
+              let keys = existingJwks ? JSON.parse(existingJwks.value).keys : [];
               let keystore = jose.JWK.createKeyStore();
               return keystore.add(publicKey, 'pem', {kid, use:'sig'})
                 .then( result => {
