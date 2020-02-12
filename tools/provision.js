@@ -21,7 +21,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2019-December-17 11:07:40>
+// last saved: <2020-February-12 11:14:58>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -39,7 +39,7 @@ const edgejs     = require('apigee-edge-js'),
         ['R' , 'reset', 'Optional. Reset, delete all the assets previously provisioned by this script.'],
         ['b' , 'keystrength=ARG', 'optional. strength in bits of the RSA keypair. Default: ' + defaults.keystrength],
         ['S' , 'secretsmap=ARG', 'name of the KVM in Apigee for private keys. Will be created (encrypted) if nec. Default: ' + defaults.secretsmap],
-        ['N' , 'nonsecretsmap=ARG', 'name of the KVM in Apigee for public keys, keyids, JWKS. Will be created if nec. Default: ' + defaults.nonsecretsmap], 
+        ['N' , 'nonsecretsmap=ARG', 'name of the KVM in Apigee for public keys, keyids, JWKS. Will be created if nec. Default: ' + defaults.nonsecretsmap],
         ['e' , 'env=ARG', 'required. the Apigee environment to provision for this example. ']
       ])).bindHelp();
 
@@ -112,14 +112,15 @@ function loadKeysIntoMap(org) {
             .then( result => {
               //console.log('kvm result: ' + util.format(result));
               let existingJwks = result.entry.find( x => x.name == 'jwks');
-              existingJwks = (existingJwks) ? JSON.parse(existingJwks.value) : { keys : []};
-              //console.log('existingJwks: ' + JSON.stringify(existingJwks));
 
+              //console.log('existingJwks: ' + JSON.stringify(existingJwks));
+              let keys = JSON.parse(existingJwks ? existingJwks.value : "[]");
+              //console.log('keys: ' + JSON.stringify(keys));
               let keystore = jose.JWK.createKeyStore();
               return keystore.add(publicKey, 'pem', {kid, use:'sig'})
                 .then( result => {
-                  existingJwks.keys.push(result.toJSON());
-                  return org.kvms.put({...options, value: JSON.stringify(existingJwks) });
+                  keys.push(result.toJSON());
+                  return org.kvms.put({...options, value: JSON.stringify(keys) });
                 });
             })
             .then( _ => ({kid, publicKey, privateKey}));
