@@ -21,7 +21,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-February-12 11:14:58>
+// last saved: <2020-February-12 11:27:53>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -120,6 +120,7 @@ function loadKeysIntoMap(org) {
               return keystore.add(publicKey, 'pem', {kid, use:'sig'})
                 .then( result => {
                   keys.push(result.toJSON());
+                  //console.log('new keys: ' + JSON.stringify(keys));
                   return org.kvms.put({...options, value: JSON.stringify(keys) });
                 });
             })

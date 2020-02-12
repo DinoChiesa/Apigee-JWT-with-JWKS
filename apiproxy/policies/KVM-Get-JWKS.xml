@@ -1,4 +1,4 @@
-<KeyValueMapOperations name='KVM-Get-JWKS' mapIdentifier='non-secrets'>
+<KeyValueMapOperations name='KVM-Get-JWKS' mapIdentifier='settings'>
   <Scope>environment</Scope>
   <ExpiryTimeInSecs>180</ExpiryTimeInSecs>
   <Get assignTo='jwks'>

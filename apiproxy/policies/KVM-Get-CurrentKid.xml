@@ -1,4 +1,4 @@
-<KeyValueMapOperations name='KVM-Get-CurrentKid' mapIdentifier='non-secrets'>
+<KeyValueMapOperations name='KVM-Get-CurrentKid' mapIdentifier='settings'>
   <Scope>environment</Scope>
   <ExpiryTimeInSecs>180</ExpiryTimeInSecs>
   <Get assignTo='currentKid'>
