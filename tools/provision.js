@@ -21,7 +21,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-February-12 11:27:53>
+// last saved: <2020-February-12 11:33:42>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -121,7 +121,7 @@ function loadKeysIntoMap(org) {
                 .then( result => {
                   keys.push(result.toJSON());
                   //console.log('new keys: ' + JSON.stringify(keys));
-                  return org.kvms.put({...options, value: JSON.stringify(keys) });
+                  return org.kvms.put({...options, value: JSON.stringify({keys}) });
                 });
             })
             .then( _ => ({kid, publicKey, privateKey}));
@@ -278,6 +278,7 @@ apigeeEdge.connect(common.optToOptions(opt))
       .then( result => {
         common.logWrite(sprintf('app1: %s', result.name));
         console.log();
+        console.log('JWKS_ENDPOINT=https://$ORG-$ENV.apigee.net/jwt-with-jwks/jwks.json');
         console.log(sprintf('client_id=%s', result.credentials[0].consumerKey));
         console.log(sprintf('client_secret=%s', result.credentials[0].consumerSecret));
         console.log();

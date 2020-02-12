@@ -99,13 +99,12 @@ function loadKeysIntoMap(org) {
               //console.log('kvm result: ' + util.format(result));
               let existingJwks = result.entry.find( x => x.name == 'jwks');
               //console.log(existingJwks);
-              existingJwks = (existingJwks) ? JSON.parse(existingJwks.value) : { keys : []};
-
+              let keys = JSON.parse(existingJwks? existingJwks.value: "[]");
               let keystore = jose.JWK.createKeyStore();
               return keystore.add(publicKey, 'pem', {kid, use:'sig'})
                 .then( result => {
-                  existingJwks.keys.push(result.toJSON());
-                  return org.kvms.put({...options, value: JSON.stringify(existingJwks) });
+                  keys.push(result.toJSON());
+                  return org.kvms.put({...options, value: JSON.stringify({keys})});
                 });
             })
             .then( _ => ({kid, publicKey, privateKey}));
