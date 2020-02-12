@@ -89,6 +89,8 @@ Prerequisites:
 * an apigee org + environment
 * A terminal shell
 
+### Steps:
+
 1. Prepare:
    Open the terminal shell. cd into the tools directory.
    ```
@@ -103,10 +105,16 @@ Prerequisites:
    ENV=myenv
 
    # provision a new keypair, import and deploy the proxy, and provision a product and app
-   node ./provision.js -v -u myapigeeid@example.com -o $ORG -e $ENV 
+   node ./provision.js -v -u myapigeeid@example.com -o $ORG -e $ENV
    ```
 
-3. In the output of the above provisioning script, find the client id and secret 
+   Or, if you have a .netrc file with the credentials in it, then that
+   last line can be:
+   ```
+   node ./provision.js -v -n -o $ORG -e $ENV
+   ```
+
+3. In the output of the above provisioning script, find the client id and secret
    for the newly-created  Apigee developer app. Copy paste them, to set it into your terminal environment:
    ```
    client_id=baaadbeefeiodxkjkdjdlk
