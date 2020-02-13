@@ -52,18 +52,30 @@ A JWKS (aka JSON Web Key Set) looks like this:
 ```
 {
   "keys": [
-    {"kty":"EC","crv":"P-256","kid":"2775c10b","x":"j5J5MsLy8KSXzEg6iDccIefx7DpXegiMmKkn6vkHmFw","y":"Sy0ImntHK0NBn0GnPw1DKd1wbpdMGyelvQBmN2ZP0Bs"},
-    {"kty":"RSA","e":"AQAB","use":"sig","kid":"5601c05a","n":"gunSksQIlGfpul5q_hmwRtRor1E6eYRT9XTS-_UhZE0yO4lv0iZY5BnElzjmsuBa1bkjNBKyfASaa5_fj71eYwbz-O3iltfRmQ9wm4X_jWTtRL4xE6hydDR7o1CS7_rNdKcKjD88rhcNQmhxDZarVVSH7OYcndGgisLolo2w6lk3SN_j55AqzF2O4DGDyX-zXvv4DcEVSsprsizteZXxMGJoVKGsEx-kxoAn1OUB4CnkorWwqOiJ_RSHpd6X8fhRoWG_wEwmnd-0FFQmn3sNaR2CFmR9WHYhuDEj1VeKCMmZ_Xjh-lB2EMpyUNDug0c7tuo2EWkYxkBRJmrkrsCy5w"}
+    {
+      "kty": "EC",
+      "crv": "P-256",
+      "kid": "2775c10b",
+      "x": "j5J5MsLy8KSXzEg6iDccIefx7DpXegiMmKkn6vkHmFw",
+      "y": "Sy0ImntHK0NBn0GnPw1DKd1wbpdMGyelvQBmN2ZP0Bs"
+    },
+    {
+      "kty": "RSA",
+      "e": "AQAB",
+      "use": "sig",
+      "kid": "5601c05a",
+      "n": "gunSksQIlGfpul5q_hmwRtRor1E6eYRT9XTS-_UhZE0yO4lv0iZY5BnElzjmsuBa1bkjNBKyfASaa5_fj71eYwbz-O3iltfRmQ9wm4X_jWTtRL4xE6hydDR7o1CS7_rNdKcKjD88rhcNQmhxDZarVVSH7OYcndGgisLolo2w6lk3SN_j55AqzF2O4DGDyX-zXvv4DcEVSsprsizteZXxMGJoVKGsEx-kxoAn1OUB4CnkorWwqOiJ_RSHpd6X8fhRoWG_wEwmnd-0FFQmn3sNaR2CFmR9WHYhuDEj1VeKCMmZ_Xjh-lB2EMpyUNDug0c7tuo2EWkYxkBRJmrkrsCy5w"
+    }
   ]
-}
-```
+}```
 
-Each item in the "keys" array identifies a public key. Because these keys are
+Each item in the "keys" array specifies (in this case) a public key. Because these keys are
 "public", they can be shared freely. The verifying app or
 system can retrieve the JWKS payload from a well-known endpoint, and
-then select one of the keys in the list to use. Normally this is done with the
-kid; the JWT that will be verified includes a `kid` value in the header, and the
-verifying app just selects the key from the JWKS with the matching kid. Easy.
+then select one of the keys in the list to use to verify the signature. Normally
+the verifier selects the key based on a match on the `kid`.
+The JWT to be verified includes a `kid` value in the header, and the
+verifying app just selects the key from the JWKS with the matching `kid`. Easy.
 
 
 ## Use Apigee to Generate a JWT that can be verified via a .jwks endpoint
