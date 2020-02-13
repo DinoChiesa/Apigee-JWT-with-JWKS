@@ -21,7 +21,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-February-12 15:13:38>
+// last saved: <2020-February-12 21:38:52>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -192,10 +192,25 @@ apigeeEdge.connect(common.optToOptions(opt))
             proxy : { name: constants.discriminators.proxy }
           };
 
+      let removeOneKvmEntry = name =>
+        org.kvms.removeEntry({kvm : opt.options.nonsecretsmap, environment: opt.options.env, key : name})
+        .catch( _ => {}) ;
+
       return Promise.resolve({})
         .then( _ => org.developerapps.del(delOptions.app).catch( _ => {}) )
         .then( _ => org.developers.del(delOptions.developer).catch( _ => {}) )
         .then( _ => org.products.del(delOptions.product).catch( _ => {}) )
+        .then( _ => removeOneKvmEntry('jwks'))
+        .then( _ =>
+          org.kvms.get({kvm : opt.options.nonsecretsmap, environment: opt.options.env})
+            .then( result => {
+              const reducer = (promise, name) =>
+                promise .then( accumulator => removeOneKvmEntry(name));
+
+              let toRemove = result.entry.map( e => e.name )
+                .filter( name => name.startsWith("public__") || name == "currentKid");
+              return toRemove.reduce(reducer, Promise.resolve([]));
+            }))
         .then( _ =>
                org.proxies.get( delOptions.proxy )
                .then( proxy => {
