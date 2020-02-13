@@ -23,9 +23,15 @@ example might be an RSA public key, which would look like this:
 Apigee does not include builtin tools for automatic management of keys, and
 automatic generation of JWKS content. But it's not difficult to build this yourself.
 
-This example shows how you might use Apigee to
-generate JWT signed with RSA keys, and also publish a .jwks endpoint containing
-public keys, which allows external clients to verify the JWT.
+This example shows how you might use Apigee to generate JWT signed with RSA
+keys, and also publish a .jwks endpoint containing public keys, which allows
+external clients to verify the JWT.
+
+## Screencast
+
+View a [screencast walkthrough](https://youtu.be/4lCob4k2z0Y) of this repo.
+
+![screengrab](img/screenshot-20200212-203652.png)
 
 ## Disclaimer
 
