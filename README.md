@@ -67,7 +67,8 @@ A JWKS (aka JSON Web Key Set) looks like this:
       "n": "gunSksQIlGfpul5q_hmwRtRor1E6eYRT9XTS-_UhZE0yO4lv0iZY5BnElzjmsuBa1bkjNBKyfASaa5_fj71eYwbz-O3iltfRmQ9wm4X_jWTtRL4xE6hydDR7o1CS7_rNdKcKjD88rhcNQmhxDZarVVSH7OYcndGgisLolo2w6lk3SN_j55AqzF2O4DGDyX-zXvv4DcEVSsprsizteZXxMGJoVKGsEx-kxoAn1OUB4CnkorWwqOiJ_RSHpd6X8fhRoWG_wEwmnd-0FFQmn3sNaR2CFmR9WHYhuDEj1VeKCMmZ_Xjh-lB2EMpyUNDug0c7tuo2EWkYxkBRJmrkrsCy5w"
     }
   ]
-}```
+}
+```
 
 Each item in the "keys" array specifies (in this case) a public key. Because these keys are
 "public", they can be shared freely. The verifying app or
