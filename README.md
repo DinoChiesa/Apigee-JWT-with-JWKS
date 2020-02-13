@@ -1,7 +1,27 @@
 # Apigee example: Generate JWT and expose JWKS
 
-Apigee does not include a builtin management for .JWKS content.
-But it's not difficult to build this yourself.
+Apigee does not include builtin management for .JWKS content.
+
+> What's a JWK?  There's a standard, [RFC
+> 7517](https://tools.ietf.org/html/rfc7517), that describes it.
+
+It describes how any system can represent a crypto key in a JSON format. An
+example might be an RSA public key, which would look like this:
+```
+{"kty":"RSA",
+          "n": "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx
+     4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMs
+     tn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2
+     QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbI
+     SD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqb
+     w0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw",
+          "e":"AQAB",
+          "alg":"RS256",
+          "kid":"2011-04-29"}
+```
+
+Apigee does not include builtin tools for automatic management of keys, and
+automatic generation of JWKS content. But it's not difficult to build this yourself.
 
 This example shows how you might use Apigee to
 generate JWT signed with RSA keys, and also publish a .jwks endpoint containing
@@ -14,14 +34,15 @@ official Google product.
 
 ## Background
 
-First, let's address a common misunderstanding. Some people think that verifying JWTs requires a JWKS endpoint.
+Before we go too much further, let's address a common misunderstanding. Some
+people think that verifying JWTs requires a JWKS endpoint.
 
 This isn't true.
 
 It is possible to use a JWKS to verify a JWT, whether you do the verification
-within Apigee, or using some other
-tool or technology. But a JWKS is not required. This is true if you do the
-verification in Apigee, or if you use some other tool, platform, or technology.
+within Apigee, or using some other tool or technology. But a JWKS is not
+required. This is true if you do the verification in Apigee, or if you use some
+other tool, platform, or technology.
 
 To verify a signed JWT, you need a public key. JWKS is a handy way of publishing
 a list of public keys; each key can be distinguished by a unique key identifier
