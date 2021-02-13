@@ -3,7 +3,7 @@
 // lists the public keys registered in the Apigee KVM.
 // or removes keys from that list.
 //
-// Copyright 2017-2019 Google LLC.
+// Copyright 2017-2021 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@
 /* jshint esversion:9, node:true, strict:implied */
 /* global process, console, Buffer */
 
-const edgejs     = require('apigee-edge-js'),
-      common     = edgejs.utility,
-      apigeeEdge = edgejs.edge,
-      util       = require('util'),
-      jose       = require('node-jose'),
-      Getopt     = require('node-getopt'),
-      version    = '20191125-1341',
-      defaults   = { secretsmap : 'secrets', nonsecretsmap: 'settings', update:false},
-      getopt     = new Getopt(common.commonOptions.concat([
+const apigeejs = require('apigee-edge-js'),
+      common   = apigeejs.utility,
+      apigee   = apigeejs.edge,
+      util     = require('util'),
+      jose     = require('node-jose'),
+      Getopt   = require('node-getopt'),
+      version  = '20210212-1542',
+      defaults = require('./config/defaults.js'),
+      getopt   = new Getopt(common.commonOptions.concat([
         ['e' , 'env=ARG', 'the Edge environment for which to store the KVM data'],
         ['S' , 'secretsmap=ARG', 'name of the KVM in Apigee for private keys.' + defaults.secretsmap],
         ['N' , 'nonsecretsmap=ARG', 'name of the KVM in Apigee for public keys, keyids, JWKS. Default: ' + defaults.nonsecretsmap],
@@ -70,9 +70,13 @@ function listPublicKeys(org) {
     return org.kvms.get(options)
       .then( result => {
 
-        // the convention is:
-        // name shall be "public__xxxxx" where xxxxx is a random string
-        // value shall be a PEM-encoded public key (spki)
+        // The convention is:
+        // The name shall be "public__TT__xxxxx" where
+        // - TT is either rsa or ec
+        // - xxxxx is a random string
+        // - TT__xxxxx is the kid
+        //
+        // The value shall be a PEM-encoded public key (spki)
         let keys = result.entry
           .filter( e => e.name.startsWith('public__') && e.value.startsWith('-----BEGIN PUBLIC KEY-----'));
 
@@ -111,7 +115,7 @@ function listPublicKeys(org) {
 // ========================================================
 
 console.log(
-  'Apigee Edge publickey management tool, version: ' + version + '\n' +
+  'Apigee publickey management tool, version: ' + version + '\n' +
     'Node.js ' + process.version + '\n');
 
 common.logWrite('start');
@@ -136,7 +140,7 @@ if ( !opt.options.nonsecretsmap ) {
 
 common.verifyCommonRequiredParameters(opt.options, getopt);
 
-apigeeEdge.connect(common.optToOptions(opt))
+apigee.connect(common.optToOptions(opt))
   .then(org => {
     common.logWrite('connected');
     return org.kvms.get({ env: opt.options.env })

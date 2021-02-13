@@ -4,6 +4,7 @@
   <Get assignTo='currentKid'>
     <Key>
       <Parameter>currentKid</Parameter>
+      <Parameter ref='request.formparam.alg'/>
     </Key>
   </Get>
 </KeyValueMapOperations>

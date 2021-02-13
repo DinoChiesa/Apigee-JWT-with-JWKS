@@ -1,5 +1,5 @@
-<GenerateJWT name='GenerateJWT-1'>
-  <Algorithm>RS256</Algorithm>
+<GenerateJWT name='GenerateJWT-ES256'>
+  <Algorithm>ES256</Algorithm>
   <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
   <PrivateKey>
     <Value ref="private.private_key"/>

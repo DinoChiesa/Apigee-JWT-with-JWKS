@@ -1,11 +1,11 @@
-<RaiseFault name='RF-InvalidGrantType'>
+<RaiseFault name='RF-InvalidAlg'>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <FaultResponse>
     <Set>
       <Payload contentType='application/json'>{
   "error" : {
-    "code" : 400.02,
-    "message" : "invalid grant type"
+    "code" : 400.03,
+    "message" : "invalid algorithm"
   }
 }
 </Payload>

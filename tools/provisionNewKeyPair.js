@@ -1,8 +1,9 @@
 // provisionNewKeyPair.js
 // ------------------------------------------------------------------
-// generate an RSA 256-bit keypair and load into Apigee Edge KVM
+// generate an public/private keypair and load into Apigee Edge KVM.
+// The keypair will be either RSA 256-bit, or EC P-256.
 //
-// Copyright 2017-2019 Google LLC.
+// Copyright 2017-2021 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,103 +21,24 @@
 /* jshint esversion:9, node:true, strict:implied */
 /* global process, console, Buffer */
 
-
-const edgejs     = require('apigee-edge-js'),
-      common     = edgejs.utility,
-      apigeeEdge = edgejs.edge,
-      crypto     = require('crypto'),
-      util       = require('util'),
-      jose       = require('node-jose'),
-      Getopt     = require('node-getopt'),
-      version    = '20191217-1110',
-      defaults   = { secretsmap : 'secrets', nonsecretsmap: 'settings', keystrength: 2048},
-      getopt     = new Getopt(common.commonOptions.concat([
-        ['e' , 'env=ARG', 'the Edge environment for which to store the KVM data'],
-        ['b' , 'keystrength=ARG', 'optional. strength in bits of the RSA keypair. Default: ' + defaults.keystrength],
-        ['S' , 'secretsmap=ARG', 'name of the KVM in Apigee for private keys. Will be created (encrypted) if nec. Default: ' + defaults.secretsmap],
-        ['N' , 'nonsecretsmap=ARG', 'name of the KVM in Apigee for public keys, keyids, JWKS. Will be created if nec. Default: ' + defaults.nonsecretsmap]
+const apigeejs = require('apigee-edge-js'),
+      common   = apigeejs.utility,
+      apigee   = apigeejs.edge,
+      util     = require('util'),
+      Getopt   = require('node-getopt'),
+      version  = '20210212-1516',
+      lib      = require('./lib/lib.js'),
+      defaults = require('./config/defaults.js'),
+      getopt   = new Getopt(common.commonOptions.concat([
+        ['e' , 'env=ARG', 'required. the Apigee environment for which to store the KVM data'],
+        ['S' , 'secretsmap=ARG', 'optional. name of the KVM in Apigee for private keys. Will be created (encrypted) if nec. Default: ' + defaults.secretsmap],
+        ['N' , 'nonsecretsmap=ARG', 'optional. name of the KVM in Apigee for public keys, keyids, JWKS. Will be created if nec. Default: ' + defaults.nonsecretsmap]
       ])).bindHelp();
 
 // ========================================================
 
-function randomString(L){
-  L = L || 18;
-  let s = '';
-  do {s += Math.random().toString(36).substring(2, 15); } while (s.length < L);
-  return s.substring(0,L);
-}
-
-function newKeyPair() {
-  return new Promise( (resolve, reject) => {
-    let keygenOptions = {
-          modulusLength: opt.options.keystrength,
-          publicKeyEncoding: { type: 'spki', format: 'pem' },
-          privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
-        };
-    crypto.generateKeyPair('rsa', keygenOptions,
-                           function (e, publicKey, privateKey) {
-                             if (e) { return reject(e); }
-                             return resolve({publicKey, privateKey});
-                           });
-   });
-}
-
-function loadKeysIntoMap(org) {
-  let kid = randomString(),
-      re = new RegExp('(?:\r\n|\r|\n)', 'g');
-
-  return newKeyPair()
-    .then( ({publicKey, privateKey}) => {
-      let publicKeyPem = publicKey.replace(re,'\\n'),
-          privateKeyPem = privateKey.replace(re,'\\n'),
-          options = {
-            env: opt.options.env,
-            kvm: opt.options.secretsmap,
-            key: 'private__' + kid,
-            value: privateKey
-          };
-      common.logWrite('provisioning new key %s', kid);
-      common.logWrite(privateKeyPem);
-      return org.kvms.put(options)
-        .then( _ => {
-          options.kvm = opt.options.nonsecretsmap;
-          options.key = 'public__' + kid;
-          options.value = publicKey;
-          return org.kvms.put(options);
-        })
-        .then( _ => {
-          options.kvm = opt.options.nonsecretsmap;
-          options.key = 'currentKid';
-          options.value = kid;
-          return org.kvms.put(options);
-        })
-        .then( _ => {
-          options.kvm = opt.options.nonsecretsmap;
-          options.key = 'jwks';
-          delete options.value;
-          return org.kvms.get(options)
-            .then( result => {
-              //console.log('kvm result: ' + util.format(result));
-              let existingJwks = result.entry.find( x => x.name == 'jwks');
-              //console.log(existingJwks);
-              let keys = existingJwks ? JSON.parse(existingJwks.value).keys : [];
-              let keystore = jose.JWK.createKeyStore();
-              return keystore.add(publicKey, 'pem', {kid, use:'sig'})
-                .then( result => {
-                  keys.push(result.toJSON());
-                  return org.kvms.put({...options, value: JSON.stringify({keys})});
-                });
-            })
-            .then( _ => ({kid, publicKey, privateKey}));
-        });
-    });
-}
-
-
-// ========================================================
-
 console.log(
-  'Apigee Edge keypair provisioning tool, version: ' + version + '\n' +
+  'Apigee keypair provisioning tool, version: ' + version + '\n' +
     'Node.js ' + process.version + '\n');
 
 common.logWrite('start');
@@ -139,18 +61,13 @@ if ( !opt.options.nonsecretsmap ) {
   opt.options.nonsecretsmap = defaults.nonsecretsmap;
 }
 
-if ( ! opt.options.keystrength ) {
-  common.logWrite('defaulting to %s for keystrength', defaults.keystrength);
-  opt.options.keystrength = defaults.keystrength;
-}
-
 common.verifyCommonRequiredParameters(opt.options, getopt);
 
-apigeeEdge.connect(common.optToOptions(opt))
+apigee.connect(common.optToOptions(opt))
   .then(org => {
     common.logWrite('connected');
     return Promise.resolve({})
-      .then( _ => loadKeysIntoMap(org) )
+      .then( _ => lib.loadKeysIntoMap(opt, org) )
       .then( _ => common.logWrite('ok. the new keys were loaded successfully.') );
   })
   .catch( e => console.error('error: ' + util.format(e) ));

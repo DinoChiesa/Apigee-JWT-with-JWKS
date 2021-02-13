@@ -28,15 +28,19 @@
           curl -i -X POST -H 'content-type application/x-www-form-urlencoded' \
             -u ${client_id}:${client_secret} \
             "https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/oauth2-cc/token" \
-            -d 'grant_type=client_credentials'
+            -d 'grant_type=client_credentials&alg=rsa'
 
-          The resulting token will have an expiry, and a set of metadata.
+          The resulting token will be a JWT.
 
       -->
       <Request>
         <Step>
           <Name>RF-InvalidGrantType</Name>
           <Condition>request.formparam.grant_type != "client_credentials"</Condition>
+        </Step>
+        <Step>
+          <Name>RF-InvalidAlg</Name>
+          <Condition>request.formparam.alg != "rsa" AND request.formparam.alg != "ec"</Condition>
         </Step>
       </Request>
 
@@ -54,7 +58,15 @@
 
         <Step><Name>AM-OtherVars</Name></Step>
 
-        <Step><Name>GenerateJWT-1</Name></Step>
+        <Step>
+          <Name>GenerateJWT-RS256</Name>
+          <Condition>request.formparam.alg = "rsa"</Condition>
+        </Step>
+
+        <Step>
+          <Name>GenerateJWT-ES256</Name>
+          <Condition>request.formparam.alg = "ec"</Condition>
+        </Step>
 
         <!-- for diagnostics purposes only -->
         <Step><Name>DecodeJWT-1</Name></Step>

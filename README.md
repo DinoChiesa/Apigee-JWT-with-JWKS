@@ -1,12 +1,14 @@
 # Apigee example: Generate JWT and expose JWKS
 
-Apigee does not include builtin management for .JWKS content.
+Apigee does not include builtin management for JWKS content.
 
-> What's a JWK?  There's a standard, [RFC
-> 7517](https://tools.ietf.org/html/rfc7517), that describes it.
+> JWK is defined in a standard, [RFC
+> 7517](https://tools.ietf.org/html/rfc7517).
 
-It describes how any system can represent a crypto key in a JSON format. An
-example might be an RSA public key, which would look like this:
+That standard describes how any system can represent a cryptography key of
+various types in a JSON format. An example might be an RSA public key, which
+would look like this:
+
 ```
 {"kty":"RSA",
           "n": "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx
@@ -24,7 +26,7 @@ Apigee does not include builtin tools for automatic management of keys, and
 automatic generation of JWKS content. But it's not difficult to build this yourself.
 
 This example shows how you might use Apigee to generate JWT signed with RSA
-keys, and also publish a .jwks endpoint containing public keys, which allows
+or EC keys, and also publish a .jwks endpoint containing public keys, which allows
 external clients to verify the JWT.
 
 ## Screencast
@@ -154,19 +156,30 @@ Prerequisites:
    node ./provision.js -v -n -o $ORG -e $ENV
    ```
 
+   This will generate keypairs for RSA and for EC, load them into the KVM, import the proxy,
+   deploy it, and then create a product, developer, and app.
+
 3. In the output of the above provisioning script, find the client id and secret
-   for the newly-created  Apigee developer app. Copy paste them, to set it into your terminal environment:
+   for the newly-created Apigee developer app. Copy paste them, to set it into your terminal environment:
    ```
    client_id=baaadbeefeiodxkjkdjdlk
    client_secret=foobarlkls
    ```
 
-4. Invoke the example proxy to Get a token:
+4. Invoke the example proxy to Get a token signed with an RSA key:
    ```
    curl -i -X POST -H content-type:application/x-www-form-urlencoded \
       -u ${client_id}:${client_secret} \
-      "https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/oauth2-cc/token" \
-      -d 'grant_type=client_credentials'
+      -d 'grant_type=client_credentials' -d 'alg=rsa' \
+      "https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/oauth2-cc/token"
+   ```
+
+   Or, you can ask for a token signed with the EC key:
+   ```
+   curl -i -X POST -H content-type:application/x-www-form-urlencoded \
+      -u ${client_id}:${client_secret} \
+      -d 'grant_type=client_credentials' -d 'alg=ec' \
+      "https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/oauth2-cc/token"
    ```
 
    The result should look like:
@@ -204,7 +217,7 @@ Prerequisites:
    ```
 
 
-Later, you can Generate and provision a new keypair.
+Later, you can Generate and provision new keypairs, one for RSA and one for EC.
 ```
 node ./provisionNewKeyPair.js -n -v -o $ORG -e $ENV
 ```
@@ -284,7 +297,7 @@ callout.
 
 ## License
 
-The material in this repo is copyright (c) 2019
+The material in this repo is copyright (c) 2019-2021
 Google LLC and is licensed under the [Apache 2.0
 License](LICENSE). This includes the JavaScript code as well as the API
 Proxy configuration.
@@ -293,8 +306,8 @@ Proxy configuration.
 
 * The provisioning tool does not remove keys from the JWKS payload when they are
   rotated out. As a result, the JWKS payload grows without bound when you re-run
-  provisionNewKeyPair.js.  This could be accomplished by storing a date in the
+  provisionNewKeyPair.js.  Removing keys could be accomplished by storing a date in the
   KVM that marks when each particular keypair was provisioned. The script could
   compare that data with "now", and then reap old private and public keys, and
   updating the JWKS appropriately, when the date is "old" (let's say, more than
-  1 or 2 months out of date).
+  1 or 2 months out of date). Left as an exercise for the reader.

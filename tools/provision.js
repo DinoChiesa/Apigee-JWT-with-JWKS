@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 // provision an Apigee API Product, Developer, and App
 //
-// Copyright 2017-2019 Google LLC.
+// Copyright 2017-2021 Google LLC.
 //
 
 /* jshint esversion: 9, strict:implied, node:true */
@@ -21,23 +21,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-February-12 21:38:52>
+// last saved: <2021-February-12 16:19:34>
 
-const edgejs     = require('apigee-edge-js'),
-      common     = edgejs.utility,
-      apigeeEdge = edgejs.edge,
-      util       = require('util'),
-      path       = require('path'),
-      jose       = require('node-jose'),
-      crypto     = require('crypto'),
-      sprintf    = require('sprintf-js').sprintf,
-      Getopt     = require('node-getopt'),
-      proxyDir   = path.resolve(__dirname, '..'),
-      version    = '20191217-1051',
-      defaults   = { secretsmap : 'secrets', nonsecretsmap: 'settings', keystrength: 2048},
-      getopt     = new Getopt(common.commonOptions.concat([
+const apigeejs = require('apigee-edge-js'),
+      common   = apigeejs.utility,
+      apigee   = apigeejs.edge,
+      util     = require('util'),
+      path     = require('path'),
+      jose     = require('node-jose'),
+      crypto   = require('crypto'),
+      sprintf  = require('sprintf-js').sprintf,
+      Getopt   = require('node-getopt'),
+      proxyDir = path.resolve(__dirname, '..'),
+      version  = '20210212-1545',
+      lib      = require('./lib/lib.js'),
+      defaults = require('./config/defaults.js'),
+      getopt   = new Getopt(common.commonOptions.concat([
         ['R' , 'reset', 'Optional. Reset, delete all the assets previously provisioned by this script.'],
-        ['b' , 'keystrength=ARG', 'optional. strength in bits of the RSA keypair. Default: ' + defaults.keystrength],
         ['S' , 'secretsmap=ARG', 'name of the KVM in Apigee for private keys. Will be created (encrypted) if nec. Default: ' + defaults.secretsmap],
         ['N' , 'nonsecretsmap=ARG', 'name of the KVM in Apigee for public keys, keyids, JWKS. Will be created if nec. Default: ' + defaults.nonsecretsmap],
         ['e' , 'env=ARG', 'required. the Apigee environment to provision for this example. ']
@@ -53,82 +53,6 @@ function insureOneMap(org, r, mapname, encrypted) {
   return r;
 }
 
-function randomString(L){
-  L = L || 18;
-  let s = '';
-  do {s += Math.random().toString(36).substring(2, 15); } while (s.length < L);
-  return s.substring(0,L);
-}
-
-function newKeyPair() {
-  return new Promise( (resolve, reject) => {
-    let keygenOptions = {
-          modulusLength: opt.options.keystrength,
-          publicKeyEncoding: { type: 'spki', format: 'pem' },
-          privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
-        };
-    crypto.generateKeyPair('rsa', keygenOptions,
-                           function (e, publicKey, privateKey) {
-                             if (e) { return reject(e); }
-                             return resolve({publicKey, privateKey});
-                           });
-   });
-}
-
-function loadKeysIntoMap(org) {
-  let kid = randomString(),
-      re = new RegExp('(?:\r\n|\r|\n)', 'g');
-
-  return newKeyPair()
-    .then( ({publicKey, privateKey}) => {
-      let publicKeyPem = publicKey.replace(re,'\\n'),
-          privateKeyPem = privateKey.replace(re,'\\n'),
-          options = {
-            env: opt.options.env,
-            kvm: opt.options.secretsmap,
-            key: 'private__' + kid,
-            value: privateKey
-          };
-      common.logWrite('provisioning new key %s', kid);
-      common.logWrite(privateKeyPem);
-      return org.kvms.put(options)
-        .then( _ => {
-          options.kvm = opt.options.nonsecretsmap;
-          options.key = 'public__' + kid;
-          options.value = publicKey;
-          return org.kvms.put(options);
-        })
-        .then( _ => {
-          options.kvm = opt.options.nonsecretsmap;
-          options.key = 'currentKid';
-          options.value = kid;
-          return org.kvms.put(options);
-        })
-        .then( _ => {
-          options.kvm = opt.options.nonsecretsmap;
-          options.key = 'jwks';
-          delete options.value;
-          return org.kvms.get(options)
-            .then( result => {
-              //console.log('kvm result: ' + util.format(result));
-              let existingJwks = result.entry.find( x => x.name == 'jwks');
-
-              //console.log('existingJwks: ' + JSON.stringify(existingJwks));
-              let keys = existingJwks ? JSON.parse(existingJwks.value).keys : [];
-              //console.log('keys: ' + JSON.stringify(keys));
-              let keystore = jose.JWK.createKeyStore();
-              return keystore.add(publicKey, 'pem', {kid, use:'sig'})
-                .then( result => {
-                  keys.push(result.toJSON());
-                  //console.log('new keys: ' + JSON.stringify(keys));
-                  return org.kvms.put({...options, value: JSON.stringify({keys}) });
-                });
-            })
-            .then( _ => ({kid, publicKey, privateKey}));
-        });
-    });
-}
-
 function importAndDeploy(org) {
   return Promise.resolve({})
     .then(_ => org.proxies.import({source:proxyDir}))
@@ -138,7 +62,7 @@ function importAndDeploy(org) {
 // ========================================================
 
 console.log(
-  'Apigee Edge JWT-with-JWKS Example Provisioning tool, version: ' + version + '\n' +
+  'Apigee JWT-with-JWKS Example Provisioning tool, version: ' + version + '\n' +
     'Node.js ' + process.version + '\n');
 
 common.logWrite('start');
@@ -161,11 +85,6 @@ if ( ! opt.options.nonsecretsmap) {
   opt.options.nonsecretsmap = defaults.nonsecretsmap;
 }
 
-if ( ! opt.options.keystrength ) {
-  common.logWrite('defaulting to %s for keystrength', defaults.keystrength);
-  opt.options.keystrength = defaults.keystrength;
-}
-
 const constants = {
         discriminators : {
           proxy        : 'jwt-with-jwks',
@@ -181,7 +100,7 @@ const constants = {
         appExpiry      : '210d'
       };
 
-apigeeEdge.connect(common.optToOptions(opt))
+apigee.connect(common.optToOptions(opt))
   .then( org => {
     common.logWrite('connected');
     if (opt.options.reset) {
@@ -202,6 +121,7 @@ apigeeEdge.connect(common.optToOptions(opt))
         .then( _ => org.products.del(delOptions.product).catch( _ => {}) )
         .then( _ => removeOneKvmEntry('jwks'))
         .then( _ =>
+               // not possible to remove from encrypted KVM
           org.kvms.get({kvm : opt.options.nonsecretsmap, environment: opt.options.env})
             .then( result => {
               const reducer = (promise, name) =>
@@ -285,7 +205,7 @@ apigeeEdge.connect(common.optToOptions(opt))
       .then( _ => org.kvms.get({ environment: opt.options.env }))
       .then( r => insureOneMap(org, r, opt.options.secretsmap, true))
       .then( r => insureOneMap(org, r, opt.options.nonsecretsmap, false))
-      .then( _ => loadKeysIntoMap(org) )
+      .then( _ => lib.loadKeysIntoMap(opt, org) )
       .then( _ => importAndDeploy(org))
       .then( _ => conditionallyCreateEntity('product'))
       .then( _ => conditionallyCreateEntity('developer'))
@@ -303,6 +223,7 @@ apigeeEdge.connect(common.optToOptions(opt))
         console.log('    -H content-type:application/x-www-form-urlencoded \\');
         console.log('    -u ${client_id}:${client_secret} \\');
         console.log('    -d grant_type=client_credentials \\');
+        console.log('    -d alg=rsa \\');
         console.log('    https://$ORG-$ENV.apigee.net/jwt-with-jwks/oauth2-cc/token');
         console.log();
       });
