@@ -269,15 +269,16 @@ To remove all the provisioned assets, run the provision script with -R (for rese
 
 All of the supporting tools are written in nodejs.
 
-* [provision.js](./tools/provision.js) - imports the example proxy bundle
-  to  Apigee, and deploys it, creates a new keypair, and creates the product,
-  developer, and app.
+* [provision.js](./tools/provision.js) - imports the example proxy bundle to
+  Apigee, and deploys it, creates a new RSA keypair and a new EC keypair, loads
+  those keys into the KVM, and finally creates the product, developer, and app.
 
 * [provisionNewKeyPair.js](./tools/provisionNewKeyPair.js) - generates a new RSA
-  public/private keypair, and loads the keys into the Apigee KVM. Private keys
-  go into an encrypted KVM, while public keys go into a non-encrypted KVM.
-  Also loads the JWKS content into the non-encrypted KVM.
-  This latter is used to fulfill requests to the jwks endpoint.
+  public/private keypair, and a new EC keypair (curve: P-256), and loads the
+  keys into the Apigee KVM. Private keys go into an encrypted KVM, while public
+  keys go into a non-encrypted KVM.  Also loads or updates the JWKS content into
+  the non-encrypted KVM, to reference the public keys.  This latter is used to
+  fulfill requests to the jwks endpoint.
 
 * [publicKeyTool.js](./tools/publicKeyTool.js) - lists and optionally removes
   public keys from the KVM, and also optionally updates the JWKS data to reflect
