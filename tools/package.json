@@ -9,7 +9,7 @@
   "dependencies": {
     "apigee-edge-js": "^0.4.34",
     "node-getopt": "git://github.com/tuxpoldo/node-getopt.git#05e498731c14b648fa332ca78d3a301c5e4be440",
-    "node-jose": "^2.0.0",
+    "node-jose": "^2.1.1",
     "sprintf-js": "^1.1.2"
   },
   "engines": {
