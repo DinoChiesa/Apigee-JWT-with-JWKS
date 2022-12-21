@@ -141,8 +141,10 @@ Prerequisites:
    ```
 
 2. Setup:
+
+   for Apgee Edge:
    ```
-   # Set environment
+   # Set shell variables
    ORG=myorg
    ENV=myenv
 
@@ -154,6 +156,16 @@ Prerequisites:
    last line can be:
    ```
    node ./provision.js -v -n -o $ORG -e $ENV
+   ```
+
+   for Apigee X or hybrid:
+   ```
+   # Set shell variables
+   ORG=myorg
+   ENV=myenv
+   TOKEN=$(gcloud auth print-access-token)
+
+   node ./provision.js -v --apigeex --token $TOKEN -o $ORG -e $ENV
    ```
 
    This will generate keypairs for RSA and for EC, load them into the KVM, import the proxy,
@@ -168,10 +180,15 @@ Prerequisites:
 
 4. Invoke the example proxy to Get a token signed with an RSA key:
    ```
+   ## Apigee Edge
+   endpoint=https://${ORG}-${ENV}.apigee.net
+   ## Apigee X or hybrid
+   endpoint=https://my-custom-endpoint.net
+   
    curl -i -X POST -H content-type:application/x-www-form-urlencoded \
       -u ${client_id}:${client_secret} \
       -d 'grant_type=client_credentials' -d 'alg=rsa' \
-      "https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/oauth2-cc/token"
+      "$endpoint/jwt-with-jwks/oauth2-cc/token"
    ```
 
    Or, you can ask for a token signed with the EC key:
@@ -179,7 +196,7 @@ Prerequisites:
    curl -i -X POST -H content-type:application/x-www-form-urlencoded \
       -u ${client_id}:${client_secret} \
       -d 'grant_type=client_credentials' -d 'alg=ec' \
-      "https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/oauth2-cc/token"
+      "$endpoint/jwt-with-jwks/oauth2-cc/token"
    ```
 
    The result should look like:
@@ -197,7 +214,7 @@ Prerequisites:
 
 5. Verify that token:
    ```
-   JWKS_ENDPOINT=https://${ORG}-${ENV}.apigee.net/jwt-with-jwks/jwks.json
+   JWKS_ENDPOINT=$endpoint/jwt-with-jwks/jwks.json
    JWT=TOKEN_FROM_ABOVE
 
    node ./validateToken.js -e $JWKS_ENDPOINT -t $JWT
@@ -219,7 +236,11 @@ Prerequisites:
 
 Later, you can Generate and provision new keypairs, one for RSA and one for EC.
 ```
-node ./provisionNewKeyPair.js -n -v -o $ORG -e $ENV
+# Apigee Edge
+node ./provisionNewKeyPair.js --token $TOKEN -v -o $ORG -e $ENV
+
+# Apigee X or hybrid
+node ./provisionNewKeyPair.js --apigeex --token $TOKEN -v -o $ORG -e $ENV
 ```
 
 This will update the KVM that stores the "currentKid" to point to the new public
@@ -237,8 +258,10 @@ of the public keys from that list, you can use the
 [publicKeyTool.js](./tools/publicKeyTool.js).
 
 ```
-# list public keys
-node ./publicKeyTool.js -n -v -o $ORG -e $ENV
+# list public keys on Apigee Edge
+node ./publicKeyTool.js --token $TOKEN -v -o $ORG -e $ENV
+# list public keys on Apigee X
+node ./publicKeyTool.js --apigeex --token $TOKEN -v -o $ORG -e $ENV
 ```
 
 If you use the Apigee UI to remove some of the public keys, you will want to
@@ -246,7 +269,7 @@ later update the JWKS to coincide with the set of public keys.
 
 ```
 # update the JWKS for the list public keys
-node ./publicKeyTool.js -n -v -o $ORG -e $ENV -U
+node ./publicKeyTool.js --token $TOKEN -v -o $ORG -e $ENV -U
 ```
 
 Finally, you can alternatively use the publicKeyTool to remove public keys and
@@ -254,14 +277,17 @@ update the JWKS from the command line.
 
 ```
 # update the JWKS for the list public keys
-node ./publicKeyTool.js -n -v -o $ORG -e $ENV -R hjadgkjshkdj -R kasksdhksjhd -U
+node ./publicKeyTool.js --token $TOKEN -v -o $ORG -e $ENV -R hjadgkjshkdj -R kasksdhksjhd -U
 ```
 
 ## Teardown
 
 To remove all the provisioned assets, run the provision script with -R (for reset):
 ```
- node ./provision.js -v -u myapigeeid@example.com -o $ORG -e $ENV  -R
+ # Edge
+ node ./provision.js -v --token $TOKEN -o $ORG -e $ENV  -R
+ # X / hybrid
+ node ./provision.js -v --apigeex --token $TOKEN -o $ORG -e $ENV  -R
 ```
 
 

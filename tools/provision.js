@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------
 // provision an Apigee API Product, Developer, and App
 //
-// Copyright 2017-2021 Google LLC.
+// Copyright 2017-2022 Google LLC.
 //
 
 /* jshint esversion: 9, strict:implied, node:true */
@@ -21,7 +21,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2021-February-12 16:19:34>
+// last saved: <2022-December-20 18:41:10>
 
 const apigeejs = require('apigee-edge-js'),
       common   = apigeejs.utility,
@@ -33,7 +33,7 @@ const apigeejs = require('apigee-edge-js'),
       sprintf  = require('sprintf-js').sprintf,
       Getopt   = require('node-getopt'),
       proxyDir = path.resolve(__dirname, '..'),
-      version  = '20210212-1545',
+      version  = '20221220-1841',
       lib      = require('./lib/lib.js'),
       defaults = require('./config/defaults.js'),
       getopt   = new Getopt(common.commonOptions.concat([
@@ -89,7 +89,7 @@ const constants = {
         discriminators : {
           proxy        : 'jwt-with-jwks',
           product      : 'JWT-with-JWKS-Example-Product',
-          developer    : 'JWT-with-JWKS-Developer@example.com',
+          developer    : 'jwt-with-jwks-developer@example.com',
           developerapp : 'JWT-with-JWKS-App'
         },
         descriptions : {
@@ -111,6 +111,7 @@ apigee.connect(common.optToOptions(opt))
             proxy : { name: constants.discriminators.proxy }
           };
 
+      // this will not work with GAAMBO
       let removeOneKvmEntry = name =>
         org.kvms.removeEntry({kvm : opt.options.nonsecretsmap, environment: opt.options.env, key : name})
         .catch( _ => {}) ;
@@ -126,8 +127,8 @@ apigee.connect(common.optToOptions(opt))
             .then( result => {
               const reducer = (promise, name) =>
                 promise .then( accumulator => removeOneKvmEntry(name));
-
-              let toRemove = result.entry.map( e => e.name )
+              let propName = (org.isGoogle()) ? 'keyValueEntries' : 'entry';
+              let toRemove = result[propName].map( e => e.name )
                 .filter( name => name.startsWith("public__") || name == "currentKid");
               return toRemove.reduce(reducer, Promise.resolve([]));
             }))
@@ -176,7 +177,7 @@ apigee.connect(common.optToOptions(opt))
               developerEmail : constants.discriminators.developer,
               productName    : constants.discriminators.product,
               description    : constants.descriptions.app,
-              expiry         : '210d',
+              expiry         : constants.appExpiry,
               attributes     : { access: 'public', note: constants.note }
             })
           }
@@ -186,6 +187,20 @@ apigee.connect(common.optToOptions(opt))
       let collectionName = entityType + 's';
       return org[collectionName].get(options[collectionName].getOptions || {})
         .then( result => {
+          if (result.apiProduct) {
+            result = result.apiProduct.map(p => p.name); // gaambo
+          }
+          else if (result.developer) {
+            result = result.developer.map(d => d.email); // gaambo
+          }
+          else if (collectionName == 'developerapps') {
+            if (Object.keys(result).length == 0) {
+              result = [];
+            }
+            if (result.app) {
+              result = result.app.map(a => a.appId);
+            }
+          }
           let itemName = constants.discriminators[entityType];
           if (result.indexOf(itemName)>=0) {
             if (collectionName == 'developerapps') {
@@ -213,7 +228,7 @@ apigee.connect(common.optToOptions(opt))
       .then( result => {
         common.logWrite(sprintf('app1: %s', result.name));
         console.log();
-        console.log('JWKS_ENDPOINT=https://$ORG-$ENV.apigee.net/jwt-with-jwks/jwks.json');
+        console.log('JWKS_ENDPOINT=https://$endpoint/jwt-with-jwks/jwks.json');
         console.log(sprintf('client_id=%s', result.credentials[0].consumerKey));
         console.log(sprintf('client_secret=%s', result.credentials[0].consumerSecret));
         console.log();
@@ -224,7 +239,7 @@ apigee.connect(common.optToOptions(opt))
         console.log('    -u ${client_id}:${client_secret} \\');
         console.log('    -d grant_type=client_credentials \\');
         console.log('    -d alg=rsa \\');
-        console.log('    https://$ORG-$ENV.apigee.net/jwt-with-jwks/oauth2-cc/token');
+        console.log('    https://$endpoint/jwt-with-jwks/oauth2-cc/token');
         console.log();
       });
   })

@@ -1,18 +1,27 @@
 {
   "name": "apigee-generate-jwt-and-publish-jwks-tools",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "A tool for provisioning an Apigee organization to serve JWKS",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "apigee-edge-js": "^0.4.15",
-    "node-getopt": "^0.3.2",
+    "apigee-edge-js": "^0.4.34",
+    "node-getopt": "git://github.com/tuxpoldo/node-getopt.git#05e498731c14b648fa332ca78d3a301c5e4be440",
     "node-jose": "^2.0.0",
     "sprintf-js": "^1.1.2"
   },
-  "keywords": [],
-  "author": "",
+  "engines": {
+    "node": ">= 12.22.0",
+    "npm": ">= 8.3.0"
+  },
+  "keywords": [
+    "apigee", "JWKS"
+  ],
+  "author": {
+    "name": "Dino Chiesa",
+    "email": "dchiesa@google.com"
+  },
   "license": "Apache-2.0"
 }

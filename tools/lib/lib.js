@@ -2,7 +2,7 @@
 // ------------------------------------------------------------------
 //
 // created: Fri Feb 12 15:48:43 2021
-// last saved: <2021-February-12 16:12:12>
+// last saved: <2022-December-20 18:39:13>
 
 /* jshint esversion:9, node:true, strict:implied */
 /* global process, console, Buffer */
@@ -73,7 +73,8 @@ newKeyPair(keytype)
         return org.kvms.get(options)
           .then( result => {
             //console.log('kvm result: ' + util.format(result));
-            let existingJwks = result.entry.find( x => x.name == 'jwks');
+            let property = (org.isGoogle()) ? 'keyValueEntries' : 'entry';
+            let existingJwks = result[property].find( x => x.name == 'jwks');
             //console.log(existingJwks);
             let keys = existingJwks ? JSON.parse(existingJwks.value).keys : [];
             let keystore = jose.JWK.createKeyStore();

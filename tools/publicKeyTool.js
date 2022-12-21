@@ -27,7 +27,7 @@ const apigeejs = require('apigee-edge-js'),
       util     = require('util'),
       jose     = require('node-jose'),
       Getopt   = require('node-getopt'),
-      version  = '20210212-1542',
+      version  = '20221220-1841',
       defaults = require('./config/defaults.js'),
       getopt   = new Getopt(common.commonOptions.concat([
         ['e' , 'env=ARG', 'the Edge environment for which to store the KVM data'],
@@ -77,7 +77,8 @@ function listPublicKeys(org) {
         // - TT__xxxxx is the kid
         //
         // The value shall be a PEM-encoded public key (spki)
-        let keys = result.entry
+        let propName = (org.isGoogle())? 'keyValueEntries' : 'entry';
+        let keys = result[propName]
           .filter( e => e.name.startsWith('public__') && e.value.startsWith('-----BEGIN PUBLIC KEY-----'));
 
         // Convert each PEM into a JWK, being sure to catch formatting errors.
